@@ -135,38 +135,49 @@ int Fleche(int NombrePossibite){  /* Initialisation de ncurses */
     refresh();
   }
  
-  return posY;
+  return posY-2;
 }
 
-void LANCEMENT_JEU(int Contenuboite[16])
+int VerifEnsembleTableau(int taille,int Tab[taille]){
+	int Premier=Tab[0];
+	int i;
+	for (i = 0; i < taille; i++)
+	{
+		if(Tab[i]!=Premier) return 1;
+	}
+	return 0;
+}
+
+void LANCEMENT_JEU(int Contenuboite[16],int LongueurVoulu,int HauteurVoulu,int NombreElement,int NombreGroupe)
 {
-	int HauteurTableau,LongueurTableau,PremierRevele=-1,DeuxiemeRevele=-1,NbrTour=0,PremiereHauteur=(-1),PremiereLongueur=(-1),DeuxiemeHauteur=(-1),DeuxiemeLongueur=(-1),NombreRevele=0,JoueurEnCours=0,Score[2];
+	int HauteurTableau,LongueurTableau,Revele[NombreElement],NbrTour=0,Hauteur[NombreElement],Longueur[NombreElement],JoueurEnCours=0,Score[2];
 	Score[0]=0;
 	Score[1]=0;
-	while (click_souris()==0)
-	{
-    	move(0,0);
-    	HauteurTableau=((L-4)/3),LongueurTableau=((C-7)/5);
-    	if(HauteurTableau>=0&&HauteurTableau<=3&&LongueurTableau>=0&&LongueurTableau<=3&&!(LongueurTableau==PremiereLongueur&&HauteurTableau==PremiereHauteur)&& Contenuboite[4*HauteurTableau+LongueurTableau]!=(-2)){
-    	    printw("Vous cliquez sur la position (%3d, %3d) et vous etes dans la case (%d,%d)\n", L, C,HauteurTableau,LongueurTableau); 
-    		move(5+HauteurTableau*3,9+LongueurTableau*5);printw("%d",Contenuboite[4*HauteurTableau+LongueurTableau]);
-    		refresh();
-    		NbrTour++;
-    		if(PremierRevele!=-1){
-    			DeuxiemeRevele=(Contenuboite[4*HauteurTableau+LongueurTableau]);
-    			DeuxiemeLongueur=LongueurTableau;
-    			DeuxiemeHauteur=HauteurTableau;
-    		}
-    		else{
-    			PremierRevele=(Contenuboite[4*HauteurTableau+LongueurTableau]);
-    			PremiereLongueur=LongueurTableau;
-    			PremiereHauteur=HauteurTableau;
-    		}
+	int i;
+    	for (int j = 0; j < NombreGroupe; )
+    	{
+    		i=0;
+    	    	while( i<NombreElement){
+    	    		click_souris();
+ 		    		HauteurTableau=((L-4)/3),LongueurTableau=((C-7)/5);
+		    		if(HauteurTableau>=0&&HauteurTableau<=HauteurVoulu-1&&LongueurTableau>=0&&LongueurTableau<=LongueurVoulu-1&& Contenuboite[4*HauteurTableau+LongueurTableau]!=(-2)){
+		    			move(0,0);
+			    	    printw("Vous cliquez sur la position (%3d, %3d) et vous etes dans la case (%d,%d)\n", L, C,HauteurTableau,LongueurTableau); 
+			    		move(5+HauteurTableau*3,9+LongueurTableau*5);printw("%d",Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau]);
+			    		move(32,30);printw("%d",i);refresh();
+			    		refresh();
+			    		NbrTour++;
 
-    		if (PremierRevele==DeuxiemeRevele)
+		    			Revele[i]=(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau]);
+		    			Longueur[i]=LongueurTableau;
+		    			Hauteur[i]=HauteurTableau;
+		    			i++;
+	    			}
+ 	    		}	
+    		if (VerifEnsembleTableau(NombreElement,Revele)==0)
     		{
-    			NombreRevele++;
     			Score[JoueurEnCours]++;
+    			j++;
     			if(JoueurEnCours==0){
 					move(1,11);
 				}
@@ -175,47 +186,42 @@ void LANCEMENT_JEU(int Contenuboite[16])
 		    	}
 		    	printw("%d",Score[JoueurEnCours]);
 		    	refresh();
-    			Contenuboite[4*PremiereHauteur+PremiereLongueur]=(-2);
-    			Contenuboite[4*DeuxiemeHauteur+DeuxiemeLongueur]=(-2);
+		    	for (int i = 0; i < NombreElement; i++)
+		    	{
+    				Contenuboite[LongueurVoulu*Hauteur[i]+Longueur[i]]=(-2);
+    			}
     			move(30,30);
     			printw("Une paire de trouvee"); refresh();
+    		
     		}
 
-    		if (NbrTour==2)
-    		{
-    			JoueurEnCours=(JoueurEnCours+1)%2;
-				if(JoueurEnCours==0){
-					move(2,0);
-					printw(" ");
-					move(1,0);
-		    	}
-		    	else{
-					move(1,0);
-					printw(" ");
-		    		move(2,0);
-		    	}
-				printw(">");
-	    		move(20,50);
-	    		printw("%d",JoueurEnCours);
-				refresh();
-		   		sleep(1);
-    			NbrTour=0;
-    			PremierRevele=-1;
-    			DeuxiemeRevele=-1;
-    			PremiereLongueur=PremiereHauteur=DeuxiemeHauteur=DeuxiemeLongueur=(-1);
-	   			fflush(stdout);
-	   			for (int x = 0;x <4 ; x++){for (int y = 0;y <4 ; y++){if(Contenuboite[4*y+x]!=(-2)){move(5+y*3,9+x*5);printw(" ");}}}
-	   			move(30,30);
-	   			printw("                    ");
-	   			refresh();
-		 	}
+    		JoueurEnCours=(JoueurEnCours+1)%2;
+			if(JoueurEnCours==0){
+				move(2,0);
+				printw(" ");
+				move(1,0);
+		    }
+		    else{
+				move(1,0);
+				printw(" ");
+		    	move(2,0);
+		    }
+			printw(">");
+	    	move(20,50);
+	    	printw("%d",JoueurEnCours);
+			refresh();
+		   	sleep(1);
+		   	for (int i = 0; i < NombreElement; i++)
+	   		{
+	   			Revele[i]=Longueur[i]=Hauteur[i]=(-1);
+	   		}
+   			for (int x = 0;x <LongueurVoulu ; x++){for (int y = 0;y <HauteurVoulu ; y++){if(Contenuboite[4*y+x]!=(-2)){move(5+y*3,9+x*5);printw("  ");refresh();}}}
+   			move(30,30);
+   			printw("                    ");
+   			refresh();
+	 	
     	}
-		if (NombreRevele==8)
-	 	{
-	 		break;
-	 	}
-  
-	}
+
     move(31,30);
     printw("Partie terminee"); refresh();
     while(getchar()!='q');
@@ -242,12 +248,13 @@ int main(int argc,char ** argv) {
     	if(NombreCase%i==0){
     		CombinaisonVoulu[PositionCombinaison][0]=i;
     		CombinaisonVoulu[PositionCombinaison][1]=NombreCase/i;
-    		printw("\nCombinaison numero %d : %d * %d est possible ",PositionCombinaison,i,NombreCase/i);
+    		printw("\n            numero %d : %d * %d est possible ",PositionCombinaison,i,NombreCase/i);
     		PositionCombinaison++;
     	}
     }
    
     PossibiliteVoulu=Fleche(PositionCombinaison);
+    NombreLong=CombinaisonVoulu[PossibiliteVoulu][0],NombreHaut=CombinaisonVoulu[PossibiliteVoulu][1];
     refresh();
     system("clear");
     usleep(100);
@@ -265,15 +272,15 @@ int main(int argc,char ** argv) {
 
 
 
-	for (int y = 0;y <20 ; y++)
+	for (int y = 0;y <NombreCase+4 ; y++)
     {Contenuboite[y]=0;}
 
-	for (int i = 1;i <=16 ; i++)
+	for (int i = NombreElement;i <NombreCase+NombreElement ; i++)
     {
     	do{
-    		PositionAleatoire=rand()%16;
+    		PositionAleatoire=rand()%NombreCase;
     	}while(Contenuboite[PositionAleatoire]!=0);
-    	Contenuboite[PositionAleatoire]=(i+1)/2;
+    	Contenuboite[PositionAleatoire]=(i)/NombreElement;
 	}
 
    	/*for (int x = 0;x <NombreLong ; x++){for (int y = 0;y <NombreHaut ; y++){move(5+y*3,9+x*5);printw("%d",Contenuboite[NombreLong*y+x]);}}*/
@@ -283,7 +290,7 @@ int main(int argc,char ** argv) {
 	move(2,1);
 	printw("Joueur 2: 0");
 	refresh();
-    LANCEMENT_JEU(Contenuboite); //Lancement du jeu
+    LANCEMENT_JEU(Contenuboite,CombinaisonVoulu[PossibiliteVoulu][0],CombinaisonVoulu[PossibiliteVoulu][1],NombreElement,NombreGroupe); //Lancement du jeu
     endwin();    
     return 0;
 }

@@ -7,6 +7,8 @@
 #include <netinet/in.h>
 #include <ncurses.h>
 #include <signal.h>
+#include <stdarg.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,6 +43,15 @@ long hostAddr;
 long status;
 int DonneesServeur[400],DonneesClient[400];
 
+void EcritureConfig(char *cara, int *sec){
+  FILE* fichier = NULL;
+  char name[20];
+  sprintf(name,"%s.txt",cara);
+  fichier = fopen( name, "a");
+  fprintf(fichier,"%d",*sec);
+  fclose(fichier);
+}
+
 void fin(int i)
 {
   shutdown(ma_socket,2);
@@ -50,12 +61,13 @@ void fin(int i)
 /**Initialisation de ncurses**/
 void ncurses_initialiser() {
   initscr();            /* Démarre le mode ncurses */
-  cbreak();             /* Pour les saisies clavier (desac. mise en buffer) */
-  noecho();             /* Désactive l'affichage des caractères saisis */
+  //cbreak();             /* Pour les saisies clavier (desac. mise en buffer) */
+  //noecho();             /* Désactive l'affichage des caractères saisis */
   keypad(stdscr, TRUE); /* Active les touches spécifiques */
   refresh();            /* Met a jour l'affichage */
   curs_set(FALSE);      /* Masque le curseur */
 }
+
 
 
 /**Initialisation des couleurs**/
@@ -116,6 +128,14 @@ int click_souris()
     }
   }
   return 0;
+}
+
+void InitialisationNcurses(){
+  setlocale(LC_ALL, "");
+  ncurses_initialiser(); //Initialisation de ncurses
+  ncurses_souris(); //Initialisation de la souris
+  ncurses_couleurs();
+  bkgd(COLOR_PAIR(1)); /*pour changer la couleur du fond*/
 }
 
 char key_pressed() {
@@ -187,8 +207,8 @@ void Init_Serveur(){
 }
 
 int Fleche(int NombrePossibite){  /* Initialisation de ncurses */
-	int ch,posY,posX;
-	char a='<';
+  int ch,posY,posX;
+  char a='<';
 
   ncurses_initialiser();
 
@@ -206,55 +226,32 @@ int Fleche(int NombrePossibite){  /* Initialisation de ncurses */
     /* On calcule la nouvelle position */
     switch(ch) {
       case KEY_UP:
-      	 if(posY >= 3) posY--;
-	       break;
+         if(posY >= 3) posY--;
+         break;
       case KEY_DOWN:
-	       if(posY <= NombrePossibite) posY++;
-	       break;
+         if(posY <= NombrePossibite) posY++;
+         break;
     }
  
     /* On affiche le curseur */
     mvaddch(posY, posX, a);
     refresh();
   }
- 
+  mvprintw(14,0,"%d",posY-2);
+  refresh();
+  sleep(1);
   return posY-2;
 }
 
-int Menu(){  /* Initialisation de ncurses */
-	int ch,posY,posX;
-  char a='<';
-  system("clear");
-  printf("\033[%d;%dH",0,0);
-  printf("choix du mode:\nAventure\nRéseau\nSolo\nQuitter");
-  posX = 9;
-  posY = 2;
- 
-  while((ch = getch()) != 10) {
-  
-  printf("\033[%d;%dH",posY,posX);  
-  printf("<");
-    switch(ch) {
-      case 's':
-      	 if(posY >= 5) posY--;
-	       break;
-      case 'z':
-	       if(posY <= 2) posY++;
-	       break;
-    }
- }
- 
-  return posY-1;
-}
 
 int VerifEnsembleTableau(int taille,int Tab[taille]){
-	int Premier=Tab[0];
-	int i;
-	for (i = 0; i < taille; i++)
-	{
-		if(Tab[i]!=Premier) return 1;
-	}
-	return 0;
+  int Premier=Tab[0];
+  int i;
+  for (i = 0; i < taille; i++)
+  {
+    if(Tab[i]!=Premier) return 1;
+  }
+  return 0;
 }
 
 void DialogueClient(int taille, int modePC){
@@ -377,46 +374,218 @@ void ContenuBoiteAffiche(int ContenuCoord,int mode,char Text[6]){
 
 }
 
-void LANCEMENT_JEU(int Contenuboite[16],int LongueurVoulu,int HauteurVoulu,int NombreElement,int NombreGroupe,int EtatPc)
+int menu(char *chaine,...){
+  va_list ap;
+  va_start(ap,chaine);
+  int i,j,lon=0,haut=0,r,NombreMot=0;
+  char touche,taille[20];
+  system("clear");
+
+  printf("\033[%d;%dH",1,1);
+  do
+  {
+      taille[NombreMot]=strlen(chaine)+3;
+      NombreMot++;
+      printf("%s\n",chaine);
+      chaine = va_arg(ap, char *);
+  } while(chaine != NULL);
+
+  va_end(ap);
+
+  printf("\033[%d;%dH",2,taille[1]);
+  printf("<");
+  touche=0;
+  sleep(1);
+  r=2;
+    while(touche==0){
+      touche=key_pressed();
+      
+      if (touche==122)
+      {
+        touche=0;
+        if (r!=2){
+          printf("\033[%d;%dH",r,taille[r-1]);
+          printf(" ");
+          r--;
+          printf("\033[%d;%dH",r,taille[r-1]);
+          printf("<");
+          touche=0;
+        }
+      }
+      else if (touche==115)
+      {
+        touche=0;
+        if(r!=NombreMot)
+        {
+          printf("\033[%d;%dH",r,taille[r-1]);
+          printf(" ");
+          r++;
+          printf("\033[%d;%dH",r,taille[r-1]);
+          printf("<");
+          touche=0;
+        }
+      }
+      else if (touche==10)
+      {
+        
+      }
+      else
+        touche=0;
+    }  
+    printf("%d\n",r-1); 
+
+  return r-1;
+}
+
+void ChoixTailleMemory(int *NombreHaut,int *NombreLong,int *NombreElement,int *NombreGroupe){
+  printf("Dans la selection de taille");
+  int NombreAleatoire[100],CombinaisonVoulu[100][2],PositionAleatoire,PositionCombinaison=0,PossibiliteVoulu,NombreCase; 
+  if(EtatPc!=1 ){
+    int Ret,valE , valG;
+    *NombreElement=*NombreGroupe=1;
+    (*NombreElement)=menu("NombreElement","1","2","3","4","5","6","7","8","9",(char*)0);
+    (*NombreGroupe)=menu("NombreGroupe","1","2","3","4","5","6","7","8","9",(char*)0);
+    (NombreCase)=(*NombreElement)*(*NombreGroupe);
+    InitialisationNcurses();
+    move(0,0);
+    printw("Il y a en tout %d cases a faire",NombreCase);
+    refresh();
+    move(1,0); printw("Les differentes combinaisons possibles sont: ");
+    for (int i = 2; i < NombreCase; i++)
+    {
+      if((NombreCase)%i==0){
+        CombinaisonVoulu[PositionCombinaison][0]=i;
+        CombinaisonVoulu[PositionCombinaison][1]=(NombreCase)/i;
+        printw("\n            numero %d : %d * %d est possible ",PositionCombinaison,i,(NombreCase)/i);
+        PositionCombinaison++;
+      }
+    }
+    refresh();
+    PossibiliteVoulu=Fleche(PositionCombinaison);
+    *NombreLong=CombinaisonVoulu[PossibiliteVoulu][0];
+    *NombreHaut=CombinaisonVoulu[PossibiliteVoulu][1];
+    if(EtatPc==0){
+      DonneesServeur[0]=*NombreLong;
+      DonneesServeur[1]=*NombreHaut;
+      DonneesServeur[2]=*NombreElement;
+      DonneesServeur[3]=*NombreGroupe;
+      mvprintw(10,10,"Attente client");
+      //mvprintw(1,0,"serveur %d %d",DonneesServeur[0], DonneesServeur[1]);
+      refresh();
+      DialogueServeur(4,EtatPc);
+      refresh();
+    }
+    //sleep(2);
+    //send(ma_socket,NombreLong)
+    //mvprintw(0,0,"Serveur");
+    refresh();
+    sleep(1);
+  }
+  else if (EtatPc==1){
+    
+    Init_Client();
+    EtatPc=1;
+    mvprintw(10,10,"Attente du serveur");
+ 
+    DialogueClient(4,EtatPc);
+    refresh();
+    sleep(2);
+    *NombreLong=DonneesClient[0];
+    *NombreHaut=DonneesClient[1];
+    *NombreElement=DonneesClient[2];
+    *NombreGroupe=DonneesClient[3];
+    refresh();
+    sleep(1);
+  }
+  NombreCase=(*NombreHaut)*(*NombreLong);
+  endwin();
+}
+
+void CreationMemory(int NombreHaut,int NombreLong,int NombreElement,int NombreGroupe, int Contenuboite[NombreHaut*NombreLong]){
+  system("clear");
+  int NombreCase=NombreLong*NombreHaut,PositionAleatoire;
+  WINDOW *boite[100];
+  for (int x = 0;x <NombreLong ; x++)
+  {
+    for (int y = 0;y <NombreHaut ; y++)
+      {
+       boite[NombreLong*y+x+1]= subwin(stdscr, 4, 6, 4+y*3,7+x*5);  
+       wborder(boite[NombreLong*y+x+1], '|', '|', '-', '-', ' ', ' ', ' ', ' ');    
+       wrefresh(boite[NombreLong*y+x+1]);
+    //   sleep(1);
+    //   mvprintw(40,10,"%2d %2d %4d",x, y, NombreLong*y+x+1);
+    //   refresh();
+       }    
+  }
+  attron(COLOR_PAIR(COLOR_BLACK));
+  refresh();
+  //sleep(3);
+
+
+  for (int y = 0;y <NombreCase+4 ; y++){Contenuboite[y]=0;}
+    for (int i = NombreElement;i <NombreCase+NombreElement ; i++)
+    {
+      do{
+        PositionAleatoire=rand()%NombreCase;
+      }while(Contenuboite[PositionAleatoire]!=0);
+      Contenuboite[PositionAleatoire]=(i)/NombreElement;
+      DonneesServeur[PositionAleatoire]=Contenuboite[PositionAleatoire];
+   }
+    if(EtatPc==0)
+      DialogueServeur(NombreCase,EtatPc);
+    else if(EtatPc==1){
+      DialogueClient(NombreCase,EtatPc);
+    for (int i = 0; i < NombreCase; i++)
+    {
+      Contenuboite[i]=DonneesClient[i];
+    }
+  }
+  mvprintw(34,0,"fin CreationMemory");
+}
+
+void LANCEMENT_JEU(int LongueurVoulu,int HauteurVoulu,int NombreElement,int NombreGroupe,int Contenuboite[16] )
 {
-  int HauteurTableau,LongueurTableau,Revele[NombreElement],NbrTour=0,Hauteur[NombreElement],Longueur[NombreElement],JoueurEnCours=0,Score[2];
-  int RetourneTour[HauteurVoulu][LongueurVoulu];
+  int HauteurTableau,LongueurTableau,Revele[NombreElement],NbrTour=0,Hauteur[NombreElement],Longueur[NombreElement],JoueurEnCours=0,Score[2],Sec=0,Sec2=0,Min=0;
   Score[0]=0;
   Score[1]=0;
+  Sec=time(NULL);
+  Sec2=time(NULL);
+  if(EtatPc==2){
+    mvprintw(1,1,"Vous êtes le seul joueur");
+  }
+  else{
+    mvprintw(1,1,"Vous êtes joueur %d",EtatPc+1);
+    mvprintw(2,1,"Joueur 1: 0");
+    mvprintw(3,1,"Joueur 2: 0");
+  }
   int i;
   char ContenuAffiche[4];
       for (int j = 0; j < NombreGroupe;)
       {
-        for (int a = 0; a < HauteurVoulu ; a++)
-        {
-          for (int b = 0; b < LongueurVoulu; b++)
-          {
-            RetourneTour[a][b]=0;
+        if(EtatPc!=2){
+          if(JoueurEnCours==0){
+            move(3,0);
+            printw(" ");
+            move(2,0);
           }
+          else{
+            move(2,0);
+            printw(" ");
+            move(3,0);
+          }
+          printw(">"); refresh();
         }
-        if(JoueurEnCours==0){
-          move(3,0);
-          printw(" ");
-          move(2,0);
-        }
-        else{
-          move(2,0);
-          printw(" ");
-          move(3,0);
-        }
-        printw(">"); refresh();
-        //move(20,50); printw("%d",JoueurEnCours); refresh();
-        sleep(1);
         i=0;
         while( i<NombreElement){
-            if(JoueurEnCours==EtatPc){
+            mvprintw(21,120,"%02d:%02d",Min,Sec2-Sec);
+            if(JoueurEnCours==EtatPc || EtatPc==2 || EtatPc==3){
               click_souris();
               HauteurTableau=((L-4)/3),LongueurTableau=((C-7)/5);
-              if(RetourneTour[HauteurTableau][LongueurTableau]!=(-1) && HauteurTableau>=0&&HauteurTableau<=HauteurVoulu-1&&LongueurTableau>=0&&LongueurTableau<=LongueurVoulu-1&& Contenuboite[4*HauteurTableau+LongueurTableau]!=(-2)){
+              if(HauteurTableau>=0&&HauteurTableau<=HauteurVoulu-1&&LongueurTableau>=0&&LongueurTableau<=LongueurVoulu-1&& Contenuboite[4*HauteurTableau+LongueurTableau]!=(-2)){
                 move(0,0);
-                printw("Vous cliquez sur la position (%3d, %3d) et vous etes dans la case (%d,%d)\n", L, C,HauteurTableau,LongueurTableau); 
-                move(5+HauteurTableau*3,9+LongueurTableau*5);ContenuBoiteAffiche(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau],1,ContenuAffiche);printw("%s",ContenuAffiche);
-	             	refresh();
+                printw("Vous cliquez sur la position (%3d, %3d) et vous etes dans la case (%d,%d) de Contenu %d\n", L, C,HauteurTableau,LongueurTableau,Contenuboite[4*HauteurVoulu+LongueurTableau]); 
+                move(5+HauteurTableau*3,9+LongueurTableau*5);ContenuBoiteAffiche(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau],0,ContenuAffiche);printw("%s",ContenuAffiche);
+                refresh();
                 //move(32,30);printw("%d",i);refresh();
                 fprintf(stderr ," L %d C %d case (%d,%d) [%s] ", L, C, HauteurTableau,LongueurTableau, ContenuAffiche);
                 NbrTour++;
@@ -426,7 +595,7 @@ void LANCEMENT_JEU(int Contenuboite[16],int LongueurVoulu,int HauteurVoulu,int N
                   DonneesServeur[1]=LongueurTableau;
                   fprintf(stderr ,"execute DialogueServeur(2,0) ");
                   DialogueServeur(2,0); 
-                } else {
+                } else if(EtatPc==1){
                   DonneesClient[0]=HauteurTableau;
                   DonneesClient[1]=LongueurTableau;
                   fprintf(stderr ,"execute DialogueClient(2,0) ");
@@ -436,9 +605,8 @@ void LANCEMENT_JEU(int Contenuboite[16],int LongueurVoulu,int HauteurVoulu,int N
                 Revele[i]=(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau]);
                 Longueur[i]=LongueurTableau;
                 Hauteur[i]=HauteurTableau;
-                RetourneTour[HauteurTableau][LongueurTableau]=-1;
               }
-            } 
+            }
             else{
                 fprintf(stderr ,"<Joueur en cours %d EtatPc %d ", JoueurEnCours, EtatPc);
                 if (EtatPc==0) {
@@ -448,7 +616,7 @@ void LANCEMENT_JEU(int Contenuboite[16],int LongueurVoulu,int HauteurVoulu,int N
                   DialogueServeur(2,1); 
                   HauteurTableau=DonneesServeur[0];
                   LongueurTableau=DonneesServeur[1];
-                } else {
+                } else if(EtatPc==1) {
                   fprintf(stderr ,"execute DialogueClient(2,1) ");
                   DialogueClient(2,1);
                   HauteurTableau=DonneesClient[0];
@@ -460,26 +628,29 @@ void LANCEMENT_JEU(int Contenuboite[16],int LongueurVoulu,int HauteurVoulu,int N
                 Revele[i]=(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau]); 
                 Longueur[i]=LongueurTableau;
                 Hauteur[i]=HauteurTableau;
-                RetourneTour[HauteurTableau][LongueurTableau]=-1;
                 move(5+HauteurTableau*3,9+LongueurTableau*5);ContenuBoiteAffiche(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau],1,ContenuAffiche);printw("%s",ContenuAffiche);
                 refresh();
                 fprintf(stderr ," L %d C %d case (%d,%d) [%s] ", L, C, HauteurTableau,LongueurTableau, ContenuAffiche);
             }
+
             i++;
-        }
+         }
         sleep(1);  
         if ((VerifEnsembleTableau(NombreElement,Revele)==0))
         {
-          Score[JoueurEnCours]++;
           j++;
-          if(JoueurEnCours==0){
-           move(2,11);
+          if (EtatPc!=2)
+          {
+            Score[JoueurEnCours]++;
+            if(JoueurEnCours==0){
+             move(2,11);
+            }
+            else{
+             move(3,11);
+            }
+            printw("%d",Score[JoueurEnCours]);
+            refresh();
           }
-          else{
-           move(3,11);
-          }
-          printw("%d",Score[JoueurEnCours]);
-          refresh();
           for (int i = 0; i < NombreElement; i++)
           {
             Contenuboite[LongueurVoulu*Hauteur[i]+Longueur[i]]=(-2);
@@ -487,167 +658,117 @@ void LANCEMENT_JEU(int Contenuboite[16],int LongueurVoulu,int HauteurVoulu,int N
             sleep(1);
           }
           move(30,30);
-          printw(" Une paire de trouvee"); refresh();
+          printw(" Un groupe de trouvé"); refresh();
           
         }
 
       JoueurEnCours=(JoueurEnCours+1)%2;
 
-	  for (int i = 0; i < NombreElement; i++)
-	   	{
-	   		Revele[i]=Longueur[i]=Hauteur[i]=(-1);
-	   	}
-   		for (int x = 0;x <=LongueurVoulu ; x++){for (int y = 0;y <=HauteurVoulu ; y++){if(Contenuboite[LongueurVoulu*y+x]!=(-2)){move(5+y*3,9+x*5);printw("  ");refresh();}}}
-   		move(30,30);
-      printw("                    ");
+    for (int i = 0; i < NombreElement; i++) {
+        Revele[i]=Longueur[i]=Hauteur[i]=(-1);
+    }
+      for (int x = 0;x <=LongueurVoulu ; x++){for (int y = 0;y <=HauteurVoulu ; y++){if(Contenuboite[LongueurVoulu*y+x]!=(-2)){move(5+y*3,9+x*5);printw("  ");refresh();}}}
+      move(30,30);
+      printw("                          ");
       refresh();
-      for(int x=0;x<LongueurVoulu;x++){
-        for(int y=0;y<HauteurVoulu;y++){
-           mvprintw(HauteurVoulu*4+6+y,x,"%d",RetourneTour[y][x]);
-         }
-      }
 
   }
+  (Sec2)=time(NULL)-Sec+((Min)*60);
   move(31,30); printw("Partie terminee"); refresh();
   while(getchar()!='q');
 
 }
 
 int main(int argc,char ** argv) {
+
+  srand(time(NULL));
+  int Contenuboite[100],NombreAleatoire[100],CombinaisonVoulu[100][2],NombreHaut,NombreLong,NombreElement,NombreGroupe,ChoixTuto,ChoixReseau;
+  EtatPc=atoi(argv[3]);
+  system("clear");
+  int ChoixCategorie1=menu("Meu","Tuto","Solo","Duo","Reseau","Reglage","quitter",(char*)0);
+  switch (ChoixCategorie1){
+    case 1:
+      EtatPc=2;
+      ChoixTuto= menu("Niveau","2x2","2x3","2x8","3x3",(char*)0);
+      InitialisationNcurses();
+      switch(ChoixTuto){
+        case 1:
+          NombreHaut=2;NombreLong=2;NombreElement=2;NombreGroupe=2;
+          break;
+        case 2:
+          NombreHaut=2;NombreLong=3;NombreElement=2;NombreGroupe=3;
+          break;
+        case 3:
+          NombreHaut=4;NombreLong=4;NombreElement=2;NombreGroupe=8;
+          break;
+        case 4:
+          NombreHaut=3;NombreLong=3;NombreElement=3;NombreGroupe=3;
+          break;
+      }
+      CreationMemory(NombreHaut,NombreLong,NombreElement,NombreGroupe,Contenuboite);
+      LANCEMENT_JEU(NombreLong,NombreHaut,NombreElement,NombreGroupe,Contenuboite);
+      endwin();
+      break;
+
+    case 2:
+      EtatPc=2;
+      ChoixTailleMemory(&NombreHaut,&NombreLong,&NombreElement,&NombreGroupe);
+      InitialisationNcurses();
+      CreationMemory(NombreHaut,NombreLong,NombreElement,NombreGroupe,Contenuboite);
+      LANCEMENT_JEU(NombreLong,NombreHaut,NombreElement,NombreGroupe,Contenuboite);
+      endwin(); 
+      break; 
+
+    case 3:
+    EtatPc=3;
+      ChoixTailleMemory(&NombreHaut,&NombreLong,&NombreElement,&NombreGroupe);
+      InitialisationNcurses();
+      CreationMemory(NombreHaut,NombreLong,NombreElement,NombreGroupe,Contenuboite);
+      LANCEMENT_JEU(NombreLong,NombreHaut,NombreElement,NombreGroupe,Contenuboite);
+
+
+    case 4:
+      printf("Adresse IP local de l'autre ordi ?");
+      scanf("%s",SERVEURNAME);
+      if(strcmp(SERVEURNAME,"dev") == 0){ 
+         SERVEURNAME[0]='1';SERVEURNAME[1]='2';SERVEURNAME[2]='7';SERVEURNAME[3]='.';SERVEURNAME[4]='0';SERVEURNAME[5]='.';SERVEURNAME[6]='0';SERVEURNAME[7]='.';SERVEURNAME[8]='1';
+      }
+      while(getchar()!='\n');
+      ChoixReseau=menu("Jouer en réseau","Rejoindre un joueur","Créer une partie",(char*)0);
+      switch(ChoixReseau){
+        case 1:
+          EtatPc=1;
+          Init_Client();
+          ChoixTailleMemory(&NombreHaut,&NombreLong,&NombreElement,&NombreGroupe);
+          InitialisationNcurses();
+          CreationMemory(NombreHaut,NombreLong,NombreElement,NombreGroupe,Contenuboite);
+          sleep(1);
+          LANCEMENT_JEU(NombreLong,NombreHaut,NombreElement,NombreGroupe,Contenuboite);
+          endwin();
+        case 2:
+          Init_Serveur();
+          EtatPc=0;
+          ChoixTailleMemory(&NombreHaut,&NombreLong,&NombreElement,&NombreGroupe);
+          InitialisationNcurses();
+          CreationMemory(NombreHaut,NombreLong,NombreElement,NombreGroupe,Contenuboite);
+          LANCEMENT_JEU(NombreLong,NombreHaut,NombreElement,NombreGroupe,Contenuboite);
+          endwin();
+      } 
+  }
+  if(EtatPc!=2)
   printf("Adresse IP local de l'autre ordi ?");
   scanf("%s",SERVEURNAME);
-//  Menu();  
   if(strcmp(SERVEURNAME,"dev") == 0){ 
-     SERVEURNAME[0]='1';
-    SERVEURNAME[1]='2';
-    SERVEURNAME[2]='7';
-    SERVEURNAME[3]='.';
-    SERVEURNAME[4]='0';
-    SERVEURNAME[5]='.';
-    SERVEURNAME[6]='0';
-    SERVEURNAME[7]='.';
-    SERVEURNAME[8]='1';
+     SERVEURNAME[0]='1';SERVEURNAME[1]='2';SERVEURNAME[2]='7';SERVEURNAME[3]='.';SERVEURNAME[4]='0';SERVEURNAME[5]='.';SERVEURNAME[6]='0';SERVEURNAME[7]='.';SERVEURNAME[8]='1';
   }
-  setlocale(LC_ALL, "");
-  ncurses_initialiser(); //Initialisation de ncurses
-  ncurses_souris(); //Initialisation de la souris
-  ncurses_couleurs();
-  bkgd(COLOR_PAIR(1)); /*pour changer la couleur du fond*/
-  WINDOW *boite[100];
-  srand(time(NULL));
-  int Contenuboite[100],NombreAleatoire[100],CombinaisonVoulu[100][2];
-  int     PossibiliteVoulu,PositionCombinaison=0,NombreLong=4,NombreHaut=4,PositionAleatoire,NombreElement=atoi(argv[1]),NombreGroupe=atoi(argv[2]),NombreCase;
   initscr();
   mvprintw(0,0,"Mode %d",atoi(argv[3]));
   refresh();
   sleep(1);
-  if(atoi(argv[3])==0){
-    Init_Serveur();
-    EtatPc=0;
-    NombreCase=NombreElement*NombreGroupe;
-    move(0,0);
-    printw("Il y a en tout %d cases a faire",NombreCase);
-    refresh();
-    move(1,0); printw("Les differentes combinaisons possibles sont: ");
-    for (int i = 2; i < NombreCase; i++)
-    {
-      if(NombreCase%i==0){
-        CombinaisonVoulu[PositionCombinaison][0]=i;
-        CombinaisonVoulu[PositionCombinaison][1]=NombreCase/i;
-        printw("\n            numero %d : %d * %d est possible ",PositionCombinaison,i,NombreCase/i);
-        PositionCombinaison++;
-      }
-    }
-    PossibiliteVoulu=Fleche(PositionCombinaison);
-    NombreLong=CombinaisonVoulu[PossibiliteVoulu][0];
-    NombreHaut=CombinaisonVoulu[PossibiliteVoulu][1];
-    DonneesServeur[0]=NombreLong;
-    DonneesServeur[1]=NombreHaut;
-    DonneesServeur[2]=NombreElement;
-    DonneesServeur[3]=NombreGroupe;
-    mvprintw(10,10,"Attente client");
-    //mvprintw(1,0,"serveur %d %d",DonneesServeur[0], DonneesServeur[1]);
-    refresh();
-    DialogueServeur(4,EtatPc);
-    refresh();
-    //sleep(2);
-    //send(ma_socket,NombreLong)
-    //mvprintw(0,0,"Serveur");
-    refresh();
-    sleep(1);
-  }
-  else{
-    
-    Init_Client();
-    EtatPc=1;
-    mvprintw(10,10,"Attente du serveur");
- 
-    DialogueClient(4,EtatPc);
-    refresh();
-    sleep(2);
-    NombreLong=DonneesClient[0];
-    NombreHaut=DonneesClient[1];
-    NombreElement=DonneesClient[2];
-    NombreGroupe=DonneesClient[3];
-    //mvprintw(0,0,"Client %d %d",DonneesClient[0], DonneesClient[1]);
-    //mvprintw(1,0,"Client %d %d",NombreLong,NombreHaut);
-    refresh();
-    sleep(1);
-  }
-  NombreCase=NombreHaut*NombreLong;
+  
   //sleep(2);
   clear();
   mvprintw(0,0,"Final %d %d  ",NombreLong,NombreHaut);
-  refresh();
-  sleep(1);
-  clear();
-  move(0,0);
-//  init_pair(1, COLOR_RED, COLOR_BLACK);
-//  attron(COLOR_PAIR(1));
-  for (int x = 0;x <NombreLong ; x++)
-  {
-    for (int y = 0;y <NombreHaut ; y++)
-      {
-	     boite[NombreLong*y+x+1]= subwin(stdscr, 4, 6, 4+y*3,7+x*5);  
-	     wborder(boite[NombreLong*y+x+1], '|', '|', '-', '-', ' ', ' ', ' ', ' ');  	
-	     wrefresh(boite[NombreLong*y+x+1]);
-    //   sleep(1);
-    //   mvprintw(40,10,"%2d %2d %4d",x, y, NombreLong*y+x+1);
-    //   refresh();
-  	   }		
-  }
-	attron(COLOR_PAIR(COLOR_BLACK));
-  refresh();
-  //sleep(3);
-
-
-  if(atoi(argv[3])==0){
-  	for (int y = 0;y <NombreCase+4 ; y++){Contenuboite[y]=0;}
-    	for (int i = NombreElement;i <NombreCase+NombreElement ; i++)
-      {
-      	do{
-      		PositionAleatoire=rand()%NombreCase;
-      	}while(Contenuboite[PositionAleatoire]!=0);
-      	Contenuboite[PositionAleatoire]=(i)/NombreElement;
-        DonneesServeur[PositionAleatoire]=Contenuboite[PositionAleatoire];
-  	}
-    DialogueServeur(NombreCase,EtatPc);
-  }
-  else{
-    DialogueClient(NombreCase,EtatPc);
-    for (int i = 0; i < NombreCase; i++)
-    {
-      Contenuboite[i]=DonneesClient[i];
-    }
-  }
-
-
-  //  for (int x = 0;x <NombreLong ; x++){for (int y = 0;y <NombreHaut ; y++){move(5+y*3,9+x*5);printw("%d",Contenuboite[NombreLong*y+x]);}}
-  mvprintw(1,1,"Vous êtes joueur %d",EtatPc+1);
-	mvprintw(2,1,"Joueur 1: 0");
-	mvprintw(3,1,"Joueur 2: 0");
-	refresh();
-  LANCEMENT_JEU(Contenuboite,NombreLong,NombreHaut,NombreElement,NombreGroupe,EtatPc); //Lancement du jeu
   endwin();    
     return 0;
 }

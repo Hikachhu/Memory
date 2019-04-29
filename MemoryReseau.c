@@ -485,8 +485,6 @@ void ChoixTailleMemory(int *NombreHaut,int *NombreLong,int *NombreElement,int *N
     *NombreHaut=DonneesClient[1];
     *NombreElement=DonneesClient[2];
     *NombreGroupe=DonneesClient[3];
-    //mvprintw(0,0,"Client %d %d",DonneesClient[0], DonneesClient[1]);
-    //mvprintw(1,0,"Client %d %d",NombreLong,NombreHaut);
     refresh();
     sleep(1);
   }
@@ -538,9 +536,11 @@ void CreationMemory(int NombreHaut,int NombreLong,int NombreElement,int NombreGr
 
 void LANCEMENT_JEU(int LongueurVoulu,int HauteurVoulu,int NombreElement,int NombreGroupe,int Contenuboite[16] )
 {
-  int HauteurTableau,LongueurTableau,Revele[NombreElement],NbrTour=0,Hauteur[NombreElement],Longueur[NombreElement],JoueurEnCours=0,Score[2];
+  int HauteurTableau,LongueurTableau,Revele[NombreElement],NbrTour=0,Hauteur[NombreElement],Longueur[NombreElement],JoueurEnCours=0,Score[2],Sec=0,Sec2=0,Min=0;
   Score[0]=0;
   Score[1]=0;
+  Sec=time(NULL);
+  Sec2=time(NULL);
   if(EtatPc==2){
     mvprintw(1,1,"Vous êtes le seul joueur");
   }
@@ -568,7 +568,8 @@ void LANCEMENT_JEU(int LongueurVoulu,int HauteurVoulu,int NombreElement,int Nomb
         }
         i=0;
         while( i<NombreElement){
-            if(JoueurEnCours==EtatPc || EtatPc==2){
+            mvprintw(21,120,"%02d:%02d",Min,Sec2-Sec);
+            if(JoueurEnCours==EtatPc || EtatPc==2 || EtatPc==3){
               click_souris();
               HauteurTableau=((L-4)/3),LongueurTableau=((C-7)/5);
               if(HauteurTableau>=0&&HauteurTableau<=HauteurVoulu-1&&LongueurTableau>=0&&LongueurTableau<=LongueurVoulu-1&& Contenuboite[4*HauteurTableau+LongueurTableau]!=(-2)){
@@ -663,6 +664,7 @@ void LANCEMENT_JEU(int LongueurVoulu,int HauteurVoulu,int NombreElement,int Nomb
       refresh();
 
   }
+  (Sec2)=time(NULL)-Sec+((Min)*60);
   move(31,30); printw("Partie terminee"); refresh();
   while(getchar()!='q');
 
@@ -674,7 +676,7 @@ int main(int argc,char ** argv) {
   int Contenuboite[100],NombreAleatoire[100],CombinaisonVoulu[100][2],NombreHaut,NombreLong,NombreElement,NombreGroupe,ChoixTuto,ChoixReseau;
   EtatPc=atoi(argv[3]);
   system("clear");
-  int ChoixCategorie1=menu("Meu","Tuto","Perso","Reseau","Reglage","quitter",(char*)0);
+  int ChoixCategorie1=menu("Meu","Tuto","Solo","Duo","Reseau","Reglage","quitter",(char*)0);
   switch (ChoixCategorie1){
     case 1:
       EtatPc=2;
@@ -698,6 +700,7 @@ int main(int argc,char ** argv) {
       LANCEMENT_JEU(NombreLong,NombreHaut,NombreElement,NombreGroupe,Contenuboite);
       endwin();
       break;
+
     case 2:
       EtatPc=2;
       ChoixTailleMemory(&NombreHaut,&NombreLong,&NombreElement,&NombreGroupe);
@@ -706,7 +709,16 @@ int main(int argc,char ** argv) {
       LANCEMENT_JEU(NombreLong,NombreHaut,NombreElement,NombreGroupe,Contenuboite);
       endwin(); 
       break; 
+
     case 3:
+    EtatPc=3;
+      ChoixTailleMemory(&NombreHaut,&NombreLong,&NombreElement,&NombreGroupe);
+      InitialisationNcurses();
+      CreationMemory(NombreHaut,NombreLong,NombreElement,NombreGroupe,Contenuboite);
+      LANCEMENT_JEU(NombreLong,NombreHaut,NombreElement,NombreGroupe,Contenuboite);
+
+
+    case 4:
       printf("Adresse IP local de l'autre ordi ?");
       scanf("%s",SERVEURNAME);
       if(strcmp(SERVEURNAME,"dev") == 0){ 

@@ -43,6 +43,25 @@ long hostAddr;
 long status;
 int DonneesServeur[400],DonneesClient[400];
 
+void EcriturePiece(int NbrPiece){
+  printf("\nVous avez gagné %d pièces",NbrPiece);
+  FILE* fichier = NULL;
+  int PieceDejaObtenues;
+  system("clear");
+
+  fichier = fopen( "Piece.txt", "r");
+  fscanf(fichier,"%d",&PieceDejaObtenues);
+  PieceDejaObtenues=(((PieceDejaObtenues-8)/6)-3);
+  fclose(fichier);
+
+  fichier = fopen( "Piece.txt", "w+");
+  NbrPiece+=PieceDejaObtenues;
+  printf("\nNombre de pièce total :%d\n",NbrPiece);
+  NbrPiece=(NbrPiece+3)*6+8;
+  fprintf(fichier,"%d",NbrPiece);
+  fclose(fichier);
+}
+
 void fin(int i)
 {
   shutdown(ma_socket,2);
@@ -568,14 +587,19 @@ void LANCEMENT_JEU(int LongueurVoulu,int HauteurVoulu,int NombreElement,int Nomb
         }
         i=0;
         while( i<NombreElement){
+            Sec2=time(NULL);
             mvprintw(21,120,"%02d:%02d",Min,Sec2-Sec);
             if(JoueurEnCours==EtatPc || EtatPc==2 || EtatPc==3){
+              signal(SIGALRM, AfficheDuree);
+              alarm(1);
               click_souris();
               HauteurTableau=((L-4)/3),LongueurTableau=((C-7)/5);
               if(HauteurTableau>=0&&HauteurTableau<=HauteurVoulu-1&&LongueurTableau>=0&&LongueurTableau<=LongueurVoulu-1&& Contenuboite[4*HauteurTableau+LongueurTableau]!=(-2)){
                 move(0,0);
                 printw("Vous cliquez sur la position (%3d, %3d) et vous etes dans la case (%d,%d) de Contenu %d\n", L, C,HauteurTableau,LongueurTableau,Contenuboite[4*HauteurVoulu+LongueurTableau]); 
-                move(5+HauteurTableau*3,9+LongueurTableau*5);ContenuBoiteAffiche(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau],0,ContenuAffiche);printw("%s",ContenuAffiche);
+                move(5+HauteurTableau*3,9+LongueurTableau*5);
+                ContenuBoiteAffiche(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau],0,ContenuAffiche);
+                printw("%s",ContenuAffiche);
                 refresh();
                 //move(32,30);printw("%d",i);refresh();
                 fprintf(stderr ," L %d C %d case (%d,%d) [%s] ", L, C, HauteurTableau,LongueurTableau, ContenuAffiche);
@@ -697,7 +721,7 @@ int main(int argc,char ** argv) {
           break;
       }
       CreationMemory(NombreHaut,NombreLong,NombreElement,NombreGroupe,Contenuboite);
-      LANCEMENT_JEU(NombreLong,NombreHaut,NombreElement,NombreGroupe,Contenuboite);
+    //  LANCEMENT_JEU(NombreLong,NombreHaut,NombreElement,NombreGroupe,Contenuboite);
       endwin();
       break;
 
@@ -716,6 +740,7 @@ int main(int argc,char ** argv) {
       InitialisationNcurses();
       CreationMemory(NombreHaut,NombreLong,NombreElement,NombreGroupe,Contenuboite);
       LANCEMENT_JEU(NombreLong,NombreHaut,NombreElement,NombreGroupe,Contenuboite);
+      break;
 
 
     case 4:
@@ -736,6 +761,7 @@ int main(int argc,char ** argv) {
           sleep(1);
           LANCEMENT_JEU(NombreLong,NombreHaut,NombreElement,NombreGroupe,Contenuboite);
           endwin();
+          break;
         case 2:
           Init_Serveur();
           EtatPc=0;
@@ -744,22 +770,9 @@ int main(int argc,char ** argv) {
           CreationMemory(NombreHaut,NombreLong,NombreElement,NombreGroupe,Contenuboite);
           LANCEMENT_JEU(NombreLong,NombreHaut,NombreElement,NombreGroupe,Contenuboite);
           endwin();
+          break;
       } 
-  }
-  if(EtatPc!=2)
-  printf("Adresse IP local de l'autre ordi ?");
-  scanf("%s",SERVEURNAME);
-  if(strcmp(SERVEURNAME,"dev") == 0){ 
-     SERVEURNAME[0]='1';SERVEURNAME[1]='2';SERVEURNAME[2]='7';SERVEURNAME[3]='.';SERVEURNAME[4]='0';SERVEURNAME[5]='.';SERVEURNAME[6]='0';SERVEURNAME[7]='.';SERVEURNAME[8]='1';
-  }
-  initscr();
-  mvprintw(0,0,"Mode %d",atoi(argv[3]));
-  refresh();
-  sleep(1);
-  
-  //sleep(2);
-  clear();
-  mvprintw(0,0,"Final %d %d  ",NombreLong,NombreHaut);
-  endwin();    
-    return 0;
+  } 
+ EcriturePiece((NombreElement-1)*(NombreGroupe-1));
+ return 0;
 }

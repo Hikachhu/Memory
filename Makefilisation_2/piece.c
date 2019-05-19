@@ -7,12 +7,12 @@ void EcriturePiece(int NbrPiece){
   int PieceDejaObtenues;
   system("clear");
 
-  fichier = fopen( "Piece.txt", "r");
+  fichier = fopen( "score/Piece.txt", "r");
   fscanf(fichier,"%d",&PieceDejaObtenues);
   PieceDejaObtenues=(((PieceDejaObtenues-8)/6)-3);
   fclose(fichier);
 
-  fichier = fopen( "Piece.txt", "w+");
+  fichier = fopen( "score/Piece.txt", "w+");
   NbrPiece+=PieceDejaObtenues;
   printf("\nNombre de pièce total :%d\n",NbrPiece);
   NbrPiece=(NbrPiece+3)*6+8;

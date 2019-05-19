@@ -23,7 +23,7 @@ void AfficheLettres(char *cara,int haut,int lon){
   FILE* fichier = NULL;
   for(z=0;cara[z]!='\0';z++){
     if(cara[z]>='a' && cara[z]<='z'){
-      sprintf(final,"%c.txt",cara[z]);
+      sprintf(final,"alphabet/%c.txt",cara[z]);
             fichier = fopen( final, "r");
     
             if (fichier==NULL)
@@ -249,13 +249,11 @@ void CreationMemory(int NombreHaut,int NombreLong,int NombreElement,int NombreGr
 
 void LANCEMENT_JEU(int LongueurVoulu,int HauteurVoulu,int NombreElement,int NombreGroupe,int Contenuboite[16],int GrandeTaille )
 {
-  int HauteurTableau,LongueurTableau,Revele[NombreElement],NbrTour=0,Hauteur[NombreElement],Longueur[NombreElement],JoueurEnCours=0,Score[2],Sec=0,Sec2=0,Min=0;
+  int HauteurTableau,LongueurTableau,Revele[NombreElement],NbrTour=0,Hauteur[NombreElement],Longueur[NombreElement],JoueurEnCours=0,Score[2];
   pthread_t minuteur;
   pthread_create(&minuteur, NULL, minuteurFonction, NULL);
   Score[0]=0;
   Score[1]=0;
-  Sec=time(NULL);
-  Sec2=time(NULL);
   if(EtatPc==2){
     mvprintw(1,1,"Vous êtes le seul joueur");
   }
@@ -383,7 +381,7 @@ void LANCEMENT_JEU(int LongueurVoulu,int HauteurVoulu,int NombreElement,int Nomb
 
   }
   pthread_cancel(minuteur);
-  (Sec2)=time(NULL)-Sec+((Min)*60);
+//  (Sec2)=time(NULL)-Sec+((Min)*60);
   move(31,30); printw("Partie terminee"); refresh();
   while(getchar()!='q');
 

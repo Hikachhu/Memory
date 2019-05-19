@@ -1,25 +1,17 @@
-CFLAG=-Wall -lncursesw -lpthread
+CFLAGS=-Wall -lncursesw -lpthread
 CC=gcc
+MKDIR_P=mkdir -p
+EXE=memory
+OBJS=obj
 
 all : FILE 
 
-main.o : main.c
-	gcc -c main.c -Wall
+$(OBJS)/%.o: %.c
+	@mkdir -p $(@D)
+	$(CC) -o $@ -c $< $(CFLAGS)
 
-ncurses.o : ncurses.c
-	gcc -c ncurses.c -lncursesw -lpthread -Wall
-
-memory.o : memory.c 
-	gcc -c memory.c -Wall -lpthread
-
-piece.o : piece.c
-	gcc -c piece.c -Wall
-
-reseau.o : reseau.c
-	gcc -c reseau.c -Wall
-
-FILE : main.o ncurses.o piece.o memory.o reseau.o
-	$(CC) -o memory main.o ncurses.o memory.o piece.o reseau.o fonctions.h variables.h $(CFLAG)
+FILE : $(OBJS)/main.o $(OBJS)/ncurses.o $(OBJS)/piece.o $(OBJS)/memory.o $(OBJS)/reseau.o
+	$(CC) -o $(EXE) $(OBJS)/main.o $(OBJS)/ncurses.o $(OBJS)/memory.o $(OBJS)/piece.o $(OBJS)/reseau.o fonctions.h variables.h $(CFLAGS)
 
 clean:
-	rm -f *.o
+	rm -f  $(OBJS)/*.o

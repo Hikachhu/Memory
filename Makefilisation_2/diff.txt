@@ -1,1 +1,0 @@
-Ensemble.txt EnsembleFichier.txt differ: byte 1, line 1

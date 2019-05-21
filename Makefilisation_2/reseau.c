@@ -60,7 +60,7 @@ void Init_Serveur(){
 int Fleche(int NombrePossibite){  /* Initialisation de ncurses */
   int ch,posY,posX;
   char a='<';
-
+  
   ncurses_initialiser();
 
   /* Place le curseur à la position de départ */

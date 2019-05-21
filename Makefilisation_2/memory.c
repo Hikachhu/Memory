@@ -17,12 +17,14 @@ void *minuteurFonction(void *arg){
 void AfficheLettres(char *cara,int haut,int lon){
   int z;
   int decalon=haut,decahaut=lon;
-  char final[10];
+  char final[25];
   int i=0,j=0;
-  int affichage[5][5];
+  int affichage;
+  mvprintw(15,50,"%s",cara);
+  refresh();
   FILE* fichier = NULL;
   for(z=0;cara[z]!='\0';z++){
-    if(cara[z]>='a' && cara[z]<='z'){
+    if(cara[z]>='a' && cara[z]<'z'){
       sprintf(final,"alphabet/%c.txt",cara[z]);
             fichier = fopen( final, "r");
     
@@ -30,12 +32,9 @@ void AfficheLettres(char *cara,int haut,int lon){
                       printf("%s\n",final);
         else{
           for(i=0;i<5;i++){
-            fscanf(fichier,"%d %d %d %d %d",&affichage[i][0],&affichage[i][1],&affichage[i][2],&affichage[i][3],&affichage[i][4]);
-          }
-      
-          for(i=0;i<5;i++){
             for(j=0;j<5;j++){
-              if (affichage[i][j]==3)
+              fscanf(fichier,"%d",&affichage);
+              if (affichage==3)
                mvprintw(i+decalon,j+decahaut,"█");
         
             }
@@ -43,6 +42,13 @@ void AfficheLettres(char *cara,int haut,int lon){
           decahaut+=5;
         }   
       fclose(fichier);
+    }
+    else if (cara[z]=='z'){
+           for(i=0;i<5;i++){
+            for(j=0;j<5;j++){
+               mvprintw(i+decalon,j+decahaut," ");  
+            }
+          }
     }
     else if(cara[z]==' ')
       decahaut+=2;
@@ -80,53 +86,53 @@ void ContenuBoiteAffiche(int ContenuCoord,int mode,char Text[6]){
 }
 
 int menu(char *chaine,...){
+  InitialisationNcurses();
   va_list ap;
   va_start(ap,chaine);
-  int r,NombreMot=0;
-  char touche,taille[20];
-  system("clear");
-
-  printf("\033[%d;%dH",1,1);
+  int r,touche,NombreMot=0;
+  char taille[20];
+  clear();
+  move(8,80);
+  attron(A_UNDERLINE);
+  taille[NombreMot]=strlen(chaine)+3;
+  printw("%s\n",chaine);
+  chaine = va_arg(ap, char *);
+  attroff(A_UNDERLINE);
+  NombreMot++;
   do
   {
-      taille[NombreMot]=strlen(chaine)+3;
-      NombreMot++;
-      printf("%s\n",chaine);
+      taille[NombreMot]=(strlen(chaine));
+      mvprintw(8+(NombreMot+1)*2,82-((taille[NombreMot])/2+0.5),"%s",chaine);
       chaine = va_arg(ap, char *);
+      NombreMot++;
   } while(chaine != NULL);
 
   va_end(ap);
 
-  printf("\033[%d;%dH",2,taille[1]);
-  printf("<");
+  mvprintw(12,80+taille[1]/2+4,"<");
   touche=0;
-  sleep(1);
+  refresh();
   r=2;
     while(touche==0){
-      touche=key_pressed();
-      
-      if (touche==122)
+      touche=getch();
+      if (touche==259)
       {
         touche=0;
         if (r!=2){
-          printf("\033[%d;%dH",r,taille[r-1]);
-          printf(" ");
+          mvprintw(8+r*2,80+(taille[r-1])/2+4," ");
           r--;
-          printf("\033[%d;%dH",r,taille[r-1]);
-          printf("<");
+          mvprintw(8+r*2,80+(taille[r-1])/2+4,"<");
           touche=0;
         }
       }
-      else if (touche==115)
+      else if (touche==258)
       {
         touche=0;
         if(r!=NombreMot)
         {
-          printf("\033[%d;%dH",r,taille[r-1]);
-          printf(" ");
+          mvprintw(8+r*2,80+(taille[r-1])/2+4," ");
           r++;
-          printf("\033[%d;%dH",r,taille[r-1]);
-          printf("<");
+          mvprintw(8+r*2,80+(taille[r-1])/2+4,"<");
           touche=0;
         }
       }
@@ -137,20 +143,19 @@ int menu(char *chaine,...){
       else
         touche=0;
     }  
-    printf("%d\n",r-1); 
-
+    endwin();
   return r-1;
 }
 
 void ChoixTailleMemory(int *NombreHaut,int *NombreLong,int *NombreElement,int *NombreGroupe){
-  printf("Dans la selection de taille");
+  clear();
   int CombinaisonVoulu[100][2],PositionCombinaison=0,PossibiliteVoulu,NombreCase; 
   if(EtatPc!=1 ){
     *NombreElement=*NombreGroupe=1;
     (*NombreElement)=menu("NombreElement","1","2","3","4","5","6","7","8","9",(char*)0);
     (*NombreGroupe)=menu("NombreGroupe","1","2","3","4","5","6","7","8","9",(char*)0);
     (NombreCase)=(*NombreElement)*(*NombreGroupe);
-    InitialisationNcurses();
+    clear();
     move(0,0);
     printw("Il y a en tout %d cases a faire",NombreCase);
     refresh();
@@ -202,11 +207,10 @@ void ChoixTailleMemory(int *NombreHaut,int *NombreLong,int *NombreElement,int *N
     sleep(1);
   }
   NombreCase=(*NombreHaut)*(*NombreLong);
-  endwin();
 }
 
-void CreationMemory(int NombreHaut,int NombreLong,int NombreElement,int NombreGroupe, int Contenuboite[NombreHaut*NombreLong],int GrandeTaille){
-  system("clear");
+void CreationMemory(int NombreHaut,int NombreLong,int NombreElement,int NombreGroupe, int Contenuboite[NombreHaut*NombreLong][3],int GrandeTaille){
+  clear();
   int NombreCase=NombreLong*NombreHaut,PositionAleatoire;
   WINDOW *boite[100];
   for (int x = 0;x <NombreLong ; x++)
@@ -226,14 +230,14 @@ void CreationMemory(int NombreHaut,int NombreLong,int NombreElement,int NombreGr
   //sleep(3);
 
 
-  for (int y = 0;y <NombreCase+4 ; y++){Contenuboite[y]=0;}
+  for (int y = 0;y <NombreCase+4 ; y++){Contenuboite[y][0]=0;}
     for (int i = NombreElement;i <NombreCase+NombreElement ; i++)
     {
       do{
         PositionAleatoire=rand()%NombreCase;
-      }while(Contenuboite[PositionAleatoire]!=0);
-      Contenuboite[PositionAleatoire]=(i)/NombreElement;
-      DonneesServeur[PositionAleatoire]=Contenuboite[PositionAleatoire];
+      }while(Contenuboite[PositionAleatoire][0]!=0);
+      Contenuboite[PositionAleatoire][0]=(i)/NombreElement;
+      DonneesServeur[PositionAleatoire]=Contenuboite[PositionAleatoire][0];
    }
     if(EtatPc==0)
       DialogueServeur(NombreCase,EtatPc);
@@ -241,15 +245,15 @@ void CreationMemory(int NombreHaut,int NombreLong,int NombreElement,int NombreGr
       DialogueClient(NombreCase,EtatPc);
     for (int i = 0; i < NombreCase; i++)
     {
-      Contenuboite[i]=DonneesClient[i];
+      Contenuboite[i][0]=DonneesClient[i];
     }
   }
   //mvprintw(34,0,"fin CreationMemory");
 }
 
-void LANCEMENT_JEU(int LongueurVoulu,int HauteurVoulu,int NombreElement,int NombreGroupe,int Contenuboite[16],int GrandeTaille )
+void LANCEMENT_JEU(int LongueurVoulu,int HauteurVoulu,int NombreElement,int NombreGroupe,int Contenuboite[16][3],int GrandeTaille )
 {
-  int HauteurTableau,LongueurTableau,Revele[NombreElement],NbrTour=0,Hauteur[NombreElement],Longueur[NombreElement],JoueurEnCours=0,Score[2];
+  int HauteurTableau,LongueurTableau,Revele[NombreElement],NbrTour=0,Hauteur[NombreElement],Longueur[NombreElement],JoueurEnCours=0,Score[2],tempsD=time(NULL);
   pthread_t minuteur;
   pthread_create(&minuteur, NULL, minuteurFonction, NULL);
   Score[0]=0;
@@ -283,17 +287,29 @@ void LANCEMENT_JEU(int LongueurVoulu,int HauteurVoulu,int NombreElement,int Nomb
     
         while( i<NombreElement){
             if(JoueurEnCours==EtatPc || EtatPc==2 || EtatPc==3){
-              click_souris();
-              HauteurTableau=((L-4)/7),LongueurTableau=((C-7)/9);
-              if(HauteurTableau>=0&&HauteurTableau<=HauteurVoulu-1&&LongueurTableau>=0&&LongueurTableau<=LongueurVoulu-1&& Contenuboite[4*HauteurTableau+LongueurTableau]!=(-2)){
+              L=0;C=0;
+              do{
+                click_souris();
+                HauteurTableau=floor((L-4)/8),LongueurTableau=floor((C-7)/10);
+              }while(!(L>=4 && HauteurTableau<=HauteurVoulu-1 && C>=7&&LongueurTableau<=LongueurVoulu-1) );
+              
+              if(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][1]!=(-2)){
                 move(0,0);
-                printw("Vous cliquez sur la position (%3d, %3d) et vous etes dans la case (%d,%d) de Contenu %d\n", L, C,HauteurTableau,LongueurTableau,Contenuboite[4*HauteurVoulu+LongueurTableau]); 
+                printw("Vous cliquez sur la position (%3d, %3d) et vous etes dans la case (%d,%d) de Contenu %d\n", L, C,HauteurTableau,LongueurTableau,Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0]); 
                 move(5+HauteurTableau*7,9+LongueurTableau*9);
-                ContenuBoiteAffiche(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau],1,ContenuAffiche);
-                if (GrandeTaille==0) printw("%s",ContenuAffiche);
-                else AfficheLettres(ContenuAffiche,5+HauteurTableau*8,9+LongueurTableau*9);
+                
+                ContenuBoiteAffiche(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0],1,ContenuAffiche);
+
+                attron(COLOR_PAIR(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0]));
+                mvprintw(9,45,"contenu=%d & converti=%c",Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0],Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0]+96);
                 refresh();
-                //move(32,30);printw("%d",i);refresh();
+
+                if (GrandeTaille==0) printw("%s",ContenuAffiche);
+                else AfficheLettres(ContenuAffiche,6+HauteurTableau*8,10+LongueurTableau*9);
+                refresh();
+                
+                attroff(COLOR_PAIR(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0]));
+                
                 fprintf(stderr ," L %d C %d case (%d,%d) [%s] ", L, C, HauteurTableau,LongueurTableau, ContenuAffiche);
                 NbrTour++;
                 fprintf(stderr ,">Joueur en cours %d EtatPc %d ", JoueurEnCours, EtatPc);
@@ -309,7 +325,7 @@ void LANCEMENT_JEU(int LongueurVoulu,int HauteurVoulu,int NombreElement,int Nomb
                   DialogueClient(2,0);
                 }   
                 fprintf(stderr ," H %d , L %d\n", HauteurTableau, LongueurTableau);
-                Revele[i]=(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau]);
+                Revele[i]=(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0]);
                 Longueur[i]=LongueurTableau;
                 Hauteur[i]=HauteurTableau;
               }
@@ -332,10 +348,10 @@ void LANCEMENT_JEU(int LongueurVoulu,int HauteurVoulu,int NombreElement,int Nomb
                 fprintf(stderr ," H %d , L %d\n", HauteurTableau, LongueurTableau);
                 move(0,0);
                 printw("L'autre joueur a choisi la case (%d,%d)\n", HauteurTableau,LongueurTableau); 
-                Revele[i]=(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau]); 
+                Revele[i]=(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0]); 
                 Longueur[i]=LongueurTableau;
                 Hauteur[i]=HauteurTableau;
-                move(5+HauteurTableau*3,9+LongueurTableau*5);ContenuBoiteAffiche(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau],1,ContenuAffiche);printw("%s",ContenuAffiche);
+                move(5+HauteurTableau*3,9+LongueurTableau*5);ContenuBoiteAffiche(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0],1,ContenuAffiche);printw("%s",ContenuAffiche);
                 refresh();
                 fprintf(stderr ," L %d C %d case (%d,%d) [%s] ", L, C, HauteurTableau,LongueurTableau, ContenuAffiche);
             }
@@ -360,7 +376,7 @@ void LANCEMENT_JEU(int LongueurVoulu,int HauteurVoulu,int NombreElement,int Nomb
           }
           for (int i = 0; i < NombreElement; i++)
           {
-            Contenuboite[LongueurVoulu*Hauteur[i]+Longueur[i]]=(-2);
+            Contenuboite[LongueurVoulu*Hauteur[i]+Longueur[i]][1]=(1);
             //printw(" Localisation %d",LongueurVoulu*Hauteur[i]+Longueur[i]); refresh();
             sleep(1);
           }
@@ -374,12 +390,18 @@ void LANCEMENT_JEU(int LongueurVoulu,int HauteurVoulu,int NombreElement,int Nomb
     for (int i = 0; i < NombreElement; i++) {
         Revele[i]=Longueur[i]=Hauteur[i]=(-1);
     }
-      for (int x = 0;x <=LongueurVoulu ; x++){for (int y = 0;y <=HauteurVoulu ; y++){if(Contenuboite[LongueurVoulu*y+x]!=(-2)){move(5+y*3,9+x*5);printw("  ");refresh();}}}
-      move(30,30);
-      printw("                          ");
+      for (int x = 0;x <=LongueurVoulu ; x++){
+        for (int y = 0;y <=HauteurVoulu ; y++){
+          if(Contenuboite[LongueurVoulu*y+x][1]!=(1)){ 
+            if (GrandeTaille==0) printw(" ");
+            else AfficheLettres("z",6+y*8,10+x*9);refresh();
+          }
+        }
+      }
       refresh();
 
   }
+  mvprintw(8,45,"%d",time(NULL)-tempsD);
   pthread_cancel(minuteur);
 //  (Sec2)=time(NULL)-Sec+((Min)*60);
   move(31,30); printw("Partie terminee"); refresh();

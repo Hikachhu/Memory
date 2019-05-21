@@ -3,15 +3,15 @@
 
 int main(int argc,char ** argv) {
  // system("play -q ’foret.mp3’ &");
+  InitialisationNcurses();
   srand(time(NULL));
   int Contenuboite[100],NombreHaut,NombreLong,NombreElement,NombreGroupe,ChoixTuto,ChoixReseau,GrandeTaille=4;
   system("clear");
-  int ChoixCategorie1=menu("Meu","Tuto","Solo","Duo","Reseau","Reglage","quitter",(char*)0);
+  int ChoixCategorie1=menu("Menu","Tuto","Solo","Duo","Reseau","IA","quitter",(char*)0);
   switch (ChoixCategorie1){
     case 1:
       EtatPc=2;
       ChoixTuto= menu("Niveau","2x2","2x3","2x8","3x3",(char*)0);
-      InitialisationNcurses();
       switch(ChoixTuto){
         case 1:
           NombreHaut=2;NombreLong=2;NombreElement=2;NombreGroupe=2;
@@ -26,26 +26,23 @@ int main(int argc,char ** argv) {
           NombreHaut=3;NombreLong=3;NombreElement=3;NombreGroupe=3;
           break;
       }
+      clear();
       CreationMemory(NombreHaut,NombreLong,NombreElement,NombreGroupe,Contenuboite,GrandeTaille);
       LANCEMENT_JEU(NombreLong,NombreHaut,NombreElement,NombreGroupe,Contenuboite,GrandeTaille);
-      endwin();
       break;
 
     case 2:
       EtatPc=2;
       ChoixTailleMemory(&NombreHaut,&NombreLong,&NombreElement,&NombreGroupe);
-      InitialisationNcurses();
       if((NombreHaut+NombreLong)>=12)
          GrandeTaille=0;
       CreationMemory(NombreHaut,NombreLong,NombreElement,NombreGroupe,Contenuboite,GrandeTaille);
       LANCEMENT_JEU(NombreLong,NombreHaut,NombreElement,NombreGroupe,Contenuboite,GrandeTaille);
-      endwin(); 
       break; 
 
     case 3:
     EtatPc=3;
       ChoixTailleMemory(&NombreHaut,&NombreLong,&NombreElement,&NombreGroupe);
-      InitialisationNcurses();
       if((NombreHaut+NombreLong)>=12) 
         GrandeTaille=0;
       CreationMemory(NombreHaut,NombreLong,NombreElement,NombreGroupe,Contenuboite,GrandeTaille);
@@ -67,24 +64,26 @@ int main(int argc,char ** argv) {
           Init_Client();
           ChoixTailleMemory(&NombreHaut,&NombreLong,&NombreElement,&NombreGroupe);
           if((NombreHaut+NombreLong)>=12) GrandeTaille=0;
-          InitialisationNcurses();
           CreationMemory(NombreHaut,NombreLong,NombreElement,NombreGroupe,Contenuboite,GrandeTaille);
           sleep(1);
           LANCEMENT_JEU(NombreLong,NombreHaut,NombreElement,NombreGroupe,Contenuboite,GrandeTaille);
-          endwin();
           break;
         case 2:
           Init_Serveur();
           EtatPc=0;
           ChoixTailleMemory(&NombreHaut,&NombreLong,&NombreElement,&NombreGroupe);
-          InitialisationNcurses();
           if((NombreHaut+NombreLong)>=12) GrandeTaille=0;
           CreationMemory(NombreHaut,NombreLong,NombreElement,NombreGroupe,Contenuboite,GrandeTaille);
           LANCEMENT_JEU(NombreLong,NombreHaut,NombreElement,NombreGroupe,Contenuboite,GrandeTaille);
-          endwin();
           break;
       } 
-  } 
+      break;
+      case 5:
+      clear();
+      ChoixCategorie1=menu("Difficulte IA","1","2","3","4",(char*)0);
+} 
+endwin();
  EcriturePiece((NombreElement-1)*(NombreGroupe-1));
+ sleep(1);
  return 0;
 }

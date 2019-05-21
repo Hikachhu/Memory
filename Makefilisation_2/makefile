@@ -1,10 +1,13 @@
-CFLAGS=-Wall -lncursesw -lpthread
+CFLAGS=-Wall -lncursesw -lpthread -lm
 CC=gcc
 MKDIR_P=mkdir -p
 EXE=memory
 OBJS=obj
 
 all : FILE 
+
+jouer:
+	./memory 2> /dev/null
 
 $(OBJS)/%.o: %.c
 	@mkdir -p $(@D)

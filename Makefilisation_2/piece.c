@@ -2,7 +2,7 @@
 #include "variables.h"
 
 void EcriturePiece(int NbrPiece){
-  printf("\nVous avez gagné %d pièces",NbrPiece);
+  mvprintw(0,0,"\nVous avez gagné %d pièces",NbrPiece);
   FILE* fichier = NULL;
   int PieceDejaObtenues;
   system("clear");
@@ -14,7 +14,7 @@ void EcriturePiece(int NbrPiece){
 
   fichier = fopen( "score/Piece.txt", "w+");
   NbrPiece+=PieceDejaObtenues;
-  printf("\nNombre de pièce total :%d\n",NbrPiece);
+  mvprintw(1,0,"nombre de pièce total :%d\n",NbrPiece);
   NbrPiece=(NbrPiece+3)*6+8;
   fprintf(fichier,"%d",NbrPiece);
   fclose(fichier);

@@ -5,9 +5,10 @@ int main(int argc,char ** argv) {
  // system("play -q ’foret.mp3’ &");
   InitialisationNcurses();
   srand(time(NULL));
-  int Contenuboite[100],NombreHaut,NombreLong,NombreElement,NombreGroupe,ChoixTuto,ChoixReseau,GrandeTaille=4;
+  int Contenuboite[100][3],NombreHaut,NombreLong,NombreElement,NombreGroupe,ChoixTuto,ChoixReseau,GrandeTaille=4,ChoixCategorie1;
   system("clear");
-  int ChoixCategorie1=menu("Menu","Tuto","Solo","Duo","Reseau","IA","quitter",(char*)0);
+  do{
+  ChoixCategorie1=menu("Menu","Tuto","Solo","Duo","Reseau","IA","quitter",(char*)0);
   switch (ChoixCategorie1){
     case 1:
       EtatPc=2;
@@ -81,9 +82,10 @@ int main(int argc,char ** argv) {
       case 5:
       clear();
       ChoixCategorie1=menu("Difficulte IA","1","2","3","4",(char*)0);
-} 
-endwin();
- EcriturePiece((NombreElement-1)*(NombreGroupe-1));
- sleep(1);
+  } 
+  EcriturePiece((NombreElement-1)*(NombreGroupe-1));
+  sleep(1);
+ }while(ChoixCategorie1!=6);
+ endwin();
  return 0;
 }

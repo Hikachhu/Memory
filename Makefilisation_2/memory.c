@@ -1,6 +1,6 @@
 #include "fonctions.h"
 #include "variables.h"
-
+/* Fonction de thread permettant de lancer la fonction du minuteur à afficher en parallèle */
 void *minuteurFonction(void *arg){
   int temps=0,Min=0;
     while(1){
@@ -13,19 +13,16 @@ void *minuteurFonction(void *arg){
     }
     return 0;
 }
+/* Fonction permettant d'afficher une lettre à des coordonnées données */
 
 void AfficheLettres(char *cara,int haut,int lon){
-  int z;
   int decalon=haut,decahaut=lon;
   char final[25];
   int i=0,j=0;
   int affichage;
-  mvprintw(15,50,"%s",cara);
-  refresh();
   FILE* fichier = NULL;
-  for(z=0;cara[z]!='\0';z++){
-    if(cara[z]>='a' && cara[z]<'z'){
-      sprintf(final,"alphabet/%c.txt",cara[z]);
+    if(cara[0]>='a' && cara[0]<'z'){
+      sprintf(final,"alphabet/%c.txt",cara[0]);
             fichier = fopen( final, "r");
     
             if (fichier==NULL)
@@ -43,22 +40,15 @@ void AfficheLettres(char *cara,int haut,int lon){
         }   
       fclose(fichier);
     }
-    else if (cara[z]=='z'){
+    else if (cara[0]=='z'){
            for(i=0;i<5;i++){
             for(j=0;j<5;j++){
                mvprintw(i+decalon,j+decahaut," ");  
             }
           }
-    }
-    else if(cara[z]==' ')
-      decahaut+=2;
-    else{
-      decahaut=0;
-      decalon+=6;
-    }
-    decahaut++;
-  } 
+    } 
 }
+/* Fonction utilisé pour vérifié si tout les élément d'un tableau son égaux, dans ce cas un 0 est renvoyé sinon c'est un 1 */
 
 int VerifEnsembleTableau(int taille,int Tab[taille]){
   int Premier=Tab[0];
@@ -70,7 +60,10 @@ int VerifEnsembleTableau(int taille,int Tab[taille]){
   return 0;
 }
 
+/* Cette fonction valorise Text avec le contenu voulu en fonction du mode séléctionné et du contenu de la boite entré en paramètre */
+
 void ContenuBoiteAffiche(int ContenuCoord,int mode,char Text[6]){
+    char Examen[8]="bcefkhsu";
     switch (mode){
       case 0:
         sprintf(Text, "%d",ContenuCoord );
@@ -81,35 +74,46 @@ void ContenuBoiteAffiche(int ContenuCoord,int mode,char Text[6]){
       case 2:
         sprintf(Text, "%d",ContenuCoord+64);
         break;
+      case 3:
+        sprintf(Text,"%c",Examen[ContenuCoord-1]);
+        break;
+
     }
 
 }
 
+/* On prend une infinité de paramètre, le premier sert de titre au menu et le reste de choix possible. Le tout est encadré. */
+
 int menu(char *chaine,...){
-  InitialisationNcurses();
+  WINDOW *boite;
   va_list ap;
   va_start(ap,chaine);
   int r,touche,NombreMot=0;
   char taille[20];
   clear();
-  move(8,80);
-  attron(A_UNDERLINE);
+  move(8,COLS/2-2);
+  attron(A_UNDERLINE | COLOR_PAIR(2));
   taille[NombreMot]=strlen(chaine)+3;
   printw("%s\n",chaine);
   chaine = va_arg(ap, char *);
-  attroff(A_UNDERLINE);
+  attroff(A_UNDERLINE | COLOR_PAIR(2));
   NombreMot++;
   do
   {
       taille[NombreMot]=(strlen(chaine));
-      mvprintw(8+(NombreMot+1)*2,82-((taille[NombreMot])/2+0.5),"%s",chaine);
+      mvprintw(8+(NombreMot+1)*2,COLS/2+1-((taille[NombreMot])/2+0.5),"%s",chaine);
       chaine = va_arg(ap, char *);
       NombreMot++;
   } while(chaine != NULL);
 
   va_end(ap);
+  attron(COLOR_PAIR(2));
+  boite= subwin(stdscr, 6+NombreMot*2, 16, 6 ,COLS/2-8);  
+  wborder(boite, '|', '|', '-', '-', '*', '*', '*', '*');    
+  wrefresh(boite);
+  attroff(COLOR_PAIR(2));
 
-  mvprintw(12,80+taille[1]/2+4,"<");
+  mvprintw(12,COLS/2-5+taille[1]/2+8,"<");
   touche=0;
   refresh();
   r=2;
@@ -119,9 +123,9 @@ int menu(char *chaine,...){
       {
         touche=0;
         if (r!=2){
-          mvprintw(8+r*2,80+(taille[r-1])/2+4," ");
+          mvprintw(8+r*2,COLS/2-5+(taille[r-1])/2+8," ");
           r--;
-          mvprintw(8+r*2,80+(taille[r-1])/2+4,"<");
+          mvprintw(8+r*2,COLS/2-5+(taille[r-1])/2+8,"<");
           touche=0;
         }
       }
@@ -130,9 +134,9 @@ int menu(char *chaine,...){
         touche=0;
         if(r!=NombreMot)
         {
-          mvprintw(8+r*2,80+(taille[r-1])/2+4," ");
+          mvprintw(8+r*2,COLS/2-5+(taille[r-1])/2+8," ");
           r++;
-          mvprintw(8+r*2,80+(taille[r-1])/2+4,"<");
+          mvprintw(8+r*2,COLS/2-5+(taille[r-1])/2+8,"<");
           touche=0;
         }
       }
@@ -179,15 +183,11 @@ void ChoixTailleMemory(int *NombreHaut,int *NombreLong,int *NombreElement,int *N
       DonneesServeur[2]=*NombreElement;
       DonneesServeur[3]=*NombreGroupe;
       mvprintw(10,10,"Attente client");
-      //mvprintw(1,0,"serveur %d %d",DonneesServeur[0], DonneesServeur[1]);
       refresh();
       DialogueServeur(4,EtatPc);
       refresh();
     }
-    //sleep(2);
-    //send(ma_socket,NombreLong)
-    //mvprintw(0,0,"Serveur");
-    refresh();
+
     sleep(1);
   }
   else if (EtatPc==1){
@@ -206,7 +206,6 @@ void ChoixTailleMemory(int *NombreHaut,int *NombreLong,int *NombreElement,int *N
     refresh();
     sleep(1);
   }
-  NombreCase=(*NombreHaut)*(*NombreLong);
 }
 
 void CreationMemory(int NombreHaut,int NombreLong,int NombreElement,int NombreGroupe, int Contenuboite[NombreHaut*NombreLong][3],int GrandeTaille){
@@ -220,9 +219,7 @@ void CreationMemory(int NombreHaut,int NombreLong,int NombreElement,int NombreGr
        boite[NombreLong*y+x+1]= subwin(stdscr, 5+GrandeTaille, 6+GrandeTaille, 4+y*(4+GrandeTaille),7+x*(5+GrandeTaille));  
        wborder(boite[NombreLong*y+x+1], '|', '|', '-', '-', '*', '*', '*', '*');    
        wrefresh(boite[NombreLong*y+x+1]);
-    //   sleep(1);
-    //   mvprintw(40,10,"%2d %2d %4d",x, y, NombreLong*y+x+1);
-    //   refresh();
+
        }    
   }
   attron(COLOR_PAIR(COLOR_BLACK));
@@ -248,12 +245,19 @@ void CreationMemory(int NombreHaut,int NombreLong,int NombreElement,int NombreGr
       Contenuboite[i][0]=DonneesClient[i];
     }
   }
-  //mvprintw(34,0,"fin CreationMemory");
 }
 
 void LANCEMENT_JEU(int LongueurVoulu,int HauteurVoulu,int NombreElement,int NombreGroupe,int Contenuboite[16][3],int GrandeTaille )
 {
   int HauteurTableau,LongueurTableau,Revele[NombreElement],NbrTour=0,Hauteur[NombreElement],Longueur[NombreElement],JoueurEnCours=0,Score[2],tempsD=time(NULL);
+  for (int i = 0; i < NombreGroupe*NombreElement; i++)
+  {
+    Contenuboite[i][2]=0;
+  }
+  for (int k = 0; k < NombreElement*NombreGroupe ; k++)
+  {
+    Contenuboite[k][1]=(0);
+  }
   pthread_t minuteur;
   pthread_create(&minuteur, NULL, minuteurFonction, NULL);
   Score[0]=0;
@@ -291,24 +295,24 @@ void LANCEMENT_JEU(int LongueurVoulu,int HauteurVoulu,int NombreElement,int Nomb
               do{
                 click_souris();
                 HauteurTableau=floor((L-4)/8),LongueurTableau=floor((C-7)/10);
-              }while(!(L>=4 && HauteurTableau<=HauteurVoulu-1 && C>=7&&LongueurTableau<=LongueurVoulu-1) );
+              }while(!(L>=4 && HauteurTableau<=HauteurVoulu-1 && C>=7&&LongueurTableau<=LongueurVoulu-1&&Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][2]!=(1)) );
               
-              if(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][1]!=(-2)){
+                Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][2]=1;
                 move(0,0);
                 printw("Vous cliquez sur la position (%3d, %3d) et vous etes dans la case (%d,%d) de Contenu %d\n", L, C,HauteurTableau,LongueurTableau,Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0]); 
                 move(5+HauteurTableau*7,9+LongueurTableau*9);
                 
-                ContenuBoiteAffiche(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0],1,ContenuAffiche);
+                ContenuBoiteAffiche(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0],3,ContenuAffiche);
 
-                attron(COLOR_PAIR(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0]));
-                mvprintw(9,45,"contenu=%d & converti=%c",Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0],Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0]+96);
+                attron(COLOR_PAIR(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0]%8));
+                mvprintw(9,45,"contenu=%d & converti=%c",Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0],ContenuAffiche);
                 refresh();
 
                 if (GrandeTaille==0) printw("%s",ContenuAffiche);
                 else AfficheLettres(ContenuAffiche,6+HauteurTableau*8,10+LongueurTableau*9);
                 refresh();
                 
-                attroff(COLOR_PAIR(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0]));
+                attroff(COLOR_PAIR(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0]%8));
                 
                 fprintf(stderr ," L %d C %d case (%d,%d) [%s] ", L, C, HauteurTableau,LongueurTableau, ContenuAffiche);
                 NbrTour++;
@@ -328,7 +332,7 @@ void LANCEMENT_JEU(int LongueurVoulu,int HauteurVoulu,int NombreElement,int Nomb
                 Revele[i]=(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0]);
                 Longueur[i]=LongueurTableau;
                 Hauteur[i]=HauteurTableau;
-              }
+              
             }
             else{
                 fprintf(stderr ,"<Joueur en cours %d EtatPc %d ", JoueurEnCours, EtatPc);
@@ -351,7 +355,22 @@ void LANCEMENT_JEU(int LongueurVoulu,int HauteurVoulu,int NombreElement,int Nomb
                 Revele[i]=(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0]); 
                 Longueur[i]=LongueurTableau;
                 Hauteur[i]=HauteurTableau;
-                move(5+HauteurTableau*3,9+LongueurTableau*5);ContenuBoiteAffiche(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0],1,ContenuAffiche);printw("%s",ContenuAffiche);
+                move(0,0);
+
+                printw("Vous cliquez sur la position (%3d, %3d) et vous etes dans la case (%d,%d) de Contenu %d\n", L, C,HauteurTableau,LongueurTableau,Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0]); 
+                move(5+HauteurTableau*7,9+LongueurTableau*9);
+                
+                ContenuBoiteAffiche(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0],3,ContenuAffiche);
+
+                attron(COLOR_PAIR(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0]%8));
+                mvprintw(9,45,"contenu=%d & converti=%c",Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0],ContenuAffiche);
+                refresh();
+
+                if (GrandeTaille==0) printw("%s",ContenuAffiche);
+                else AfficheLettres(ContenuAffiche,6+HauteurTableau*8,10+LongueurTableau*9);
+                refresh();
+                
+                attroff(COLOR_PAIR(Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][0]%8));
                 refresh();
                 fprintf(stderr ," L %d C %d case (%d,%d) [%s] ", L, C, HauteurTableau,LongueurTableau, ContenuAffiche);
             }
@@ -359,8 +378,17 @@ void LANCEMENT_JEU(int LongueurVoulu,int HauteurVoulu,int NombreElement,int Nomb
             i++;
          }
         sleep(1);  
+          for (int i = 0; i < NombreGroupe*NombreElement; i++)
+          {
+            Contenuboite[i][2]=0;
+          }
+        mvprintw(13,70,"Verif %d",VerifEnsembleTableau(NombreElement,Revele));
         if ((VerifEnsembleTableau(NombreElement,Revele)==0))
         {
+          for (int k = 0; k < NombreElement ; k++)
+          {
+            Contenuboite[LongueurVoulu*Hauteur[k]+Longueur[k]][1]=(1);
+          }
           j++;
           if (EtatPc!=2)
           {
@@ -374,13 +402,9 @@ void LANCEMENT_JEU(int LongueurVoulu,int HauteurVoulu,int NombreElement,int Nomb
             printw("%d",Score[JoueurEnCours]);
             refresh();
           }
-          for (int i = 0; i < NombreElement; i++)
-          {
-            Contenuboite[LongueurVoulu*Hauteur[i]+Longueur[i]][1]=(1);
-            //printw(" Localisation %d",LongueurVoulu*Hauteur[i]+Longueur[i]); refresh();
-            sleep(1);
-          }
-          move(30,30);
+
+          sleep(1);
+          move(10,60);
           printw(" Un groupe de trouvé"); refresh();
           
         }

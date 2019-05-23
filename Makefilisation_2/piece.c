@@ -18,3 +18,18 @@ void EcriturePiece(int NbrPiece){
   fclose(fichier);
   refresh();  
 }
+
+void LectureMode(int *Mode){
+  FILE* fichier = NULL;
+  fichier=fopen("Mode/Mode.txt","r");
+  fscanf(fichier,"%d",Mode);
+  fclose(fichier);
+}
+
+void ChangementMode(int Mode){
+  FILE* fichier = NULL;
+  fichier=fopen("Mode/Mode.txt","w+");
+  fprintf(fichier,"%d",Mode);
+  fclose(fichier);
+  mvprintw(9,10,"sorti");
+}

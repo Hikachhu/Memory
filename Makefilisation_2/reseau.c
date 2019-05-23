@@ -40,14 +40,10 @@ void Init_Serveur(){
   /* creation de socket */
   if ((ma_socket = socket(AF_INET,SOCK_STREAM,0))== -1)
   {
-    printf("ca chie avec la creation\n");
-    /*
-  exit(0);
-  */
+    printf("probleme avec la creation\n");
+
     return ;
   }
-  // signal(SIGINT,fin);
-  /* bind serveur - socket */
   bind(ma_socket,(struct sockaddr *)&mon_address,sizeof(mon_address));
 
   /* ecoute sur la socket */

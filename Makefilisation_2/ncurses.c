@@ -48,6 +48,8 @@ void ncurses_souris() {
     exit(EXIT_FAILURE);
   }
 }
+
+/* Valorisation de C et L quand on clique pour trouver les coordonnées d'un click */
 int click_souris()
 {
   MEVENT event ;

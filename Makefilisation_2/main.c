@@ -90,7 +90,7 @@ int main(int argc,char ** argv) {
       break ;
     case 6:
       clear();
-      ChangementMode(menu("Mode","Chiffre","Lettre","Exam",(char*)0));
+      ChangementMode(menu("Mode","Chiffre","Lettre","Autre","Exam",(char*)0)-1);
       mvprintw(7,10,"Fin ChangementMode");
       LectureMode(&mode);
       break;

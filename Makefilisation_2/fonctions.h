@@ -19,6 +19,8 @@
 #include <netinet/in.h>
 #include <sys/mman.h>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <pthread.h>
 
 
@@ -54,3 +56,4 @@ void LANCEMENT_JEU(int LongueurVoulu,int HauteurVoulu,int NombreElement,int Nomb
 void AfficheLettres(char *cara,int haut,int lon);
 void LectureMode(int *Mode);
 void ChangementMode(int Mode);
+int Max(int n,int *tab);

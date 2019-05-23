@@ -89,7 +89,7 @@ int menu(char *chaine,...){
   va_list ap;
   va_start(ap,chaine);
   int r,touche,NombreMot=0;
-  char taille[20];
+  int taille[20];
   clear();
   /* Partie permettant de créer le premier élément avec un soulignage et une couleur jaune */
   move(8,COLS/2-2);
@@ -109,9 +109,10 @@ int menu(char *chaine,...){
   } while(chaine != NULL);
 
   va_end(ap);
+
   /*Boite entourant le Menu */
   attron(COLOR_PAIR(2));
-  boite= subwin(stdscr, 6+NombreMot*2, 16, 6 ,COLS/2-8);  
+  boite= subwin(stdscr, 6+NombreMot*2, (Max(NombreMot-1,taille)+10), 6 ,COLS/2+(taille[0]/2)-Max(NombreMot-1,taille)-2);  
   wborder(boite, '|', '|', '-', '-', '*', '*', '*', '*');    
   wrefresh(boite);
   attroff(COLOR_PAIR(2));

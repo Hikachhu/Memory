@@ -8,7 +8,7 @@ Raphaël Ptithaddad
 #include "variables.h"
 
 int main(int argc,char ** argv) {
- // system("play -q ’foret.mp3’ &");
+  system("play -qR Musique/foret.mp3 &");
   int mode=1;
   LectureMode(&mode);
   InitialisationNcurses();

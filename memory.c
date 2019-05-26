@@ -320,7 +320,7 @@ void LANCEMENT_JEU(int LongueurVoulu,int HauteurVoulu,int NombreElement,int Nomb
                 click_souris();
                 HauteurTableau=floor((L-4)/8),LongueurTableau=floor((C-7)/10); /* conversion dans le tableau visuel */
               }while(!(L>=4 && HauteurTableau<=HauteurVoulu-1 && C>=7&&LongueurTableau<=LongueurVoulu-1&&Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][2]!=(1)) );
-              
+                system("play -q Musique/Retournement.mp3 &");            
                 Contenuboite[LongueurVoulu*HauteurTableau+LongueurTableau][2]=1;/* La carte est retourné pour l'instant */
                 /* Se positionne où il faut dans la grille pour afficher la lettre */
                 move(5+HauteurTableau*7,9+LongueurTableau*9); 
@@ -418,6 +418,7 @@ void LANCEMENT_JEU(int LongueurVoulu,int HauteurVoulu,int NombreElement,int Nomb
         /* Vérifie si l'ensemble des éléments trouvé sont égaux */
         if ((VerifEnsembleTableau(NombreElement,Revele)==0))
         {
+          system("play -q Musique/Groupe_Trouve.mp3 &");
           JoueurEnCours=(JoueurEnCours+1)%2;
           for (int k = 0; k < NombreElement ; k++)
           {
@@ -471,6 +472,7 @@ void LANCEMENT_JEU(int LongueurVoulu,int HauteurVoulu,int NombreElement,int Nomb
   else{
     mvprintw(4+HauteurVoulu*8,9+LongueurVoulu*9,"Partie terminee le meilleur joueur est le numéro %d appuyez sur q pour continuer, vous avez mis %d secondes à faire le memory",(Max(2,Score)+1)%2,tempsD); refresh();
   }
+  system("play -q Musique/fin_Partie.mp3 &");
   while(getchar()!='q');
 
 }
